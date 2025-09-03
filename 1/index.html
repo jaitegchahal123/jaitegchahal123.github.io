@@ -65,6 +65,23 @@
       font-size: 1rem;
       font-family: "Times New Roman", Times, serif;
     }
+    .image-pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .image-pair img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    @media (max-width: 700px) {
+      .image-pair {grid-template-columns:1fr; }
+    }
 
     footer {
       text-align: center;
@@ -74,6 +91,45 @@
       border-top: 1px solid #ddd;
       margin-top: 3rem;
     }
+
+   /* Create the 4 frame loop here with a dolly animation so its easier to cusotmzise*/
+    .dolly {
+      position: relative;
+      width: 100%;
+      max-width: 420px; 
+      aspect-ratio: 3/4;
+      margin: 0 auto;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .dolly img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      animation: dollyCut 0.6s steps(1, end) infinite;
+    }
+
+    .dolly img:nth-child(1) { animation-delay: 0s;   }
+    .dolly img:nth-child(2) { animation-delay: 0.15s;}
+    .dolly img:nth-child(3) { animation-delay: 0.30s;}
+    .dolly img:nth-child(4) { animation-delay: 0.45s;}
+
+    @keyframes dollyCut {
+      0%   { opacity: 1; }
+      24.9%{ opacity: 1; }
+      25%  { opacity: 0; }
+      100% { opacity: 0; }
+    }
+    .dolly:hover img { animation-play-state: paused; }
+    @media (prefers-reduced-motion: reduce) {
+      .dolly img { animation: none; opacity: 1; }
+    }
+
 
     @media (max-width: 700px) {
       .content {
@@ -89,52 +145,56 @@
   </header>
 
   <main>
-    <!-- Part 1 -->
+
     <section>
       <h2>Part 1: Selfie: The Wrong Way vs. The Right Ways</h2>
       <div class="content">
         <div class="text-block">
           <p>
-            The reason the second image looks better is because distortion is minimized with further distance.
+            The reason the second image looks better is because distortion minimize as distance increases, giving a more realistic photo, implying a higher appeal.
           </p>
         </div>
-        <div>
-          <img src="photo1.jpg" alt="Part1">
-          <img src="photo2.jpg" alt="Part1" style="margin-top:1rem;">
+        <div class="image-pair">
+          <img src="./media/IMG_5215.jpg" alt="Part1 - Close selfie (distorted)">
+          <img src="./media/IMG_5216.jpg" alt="Part1 - Stepped back + zoomed (better proportions)">
         </div>
       </div>
     </section>
+    
 
-    <!-- Part 2 -->
     <section>
       <h2>Part 2: Architectural Perspective Compression</h2>
       <div class="content">
         <div class="text-block">
           <p>
-            Zooming in from far distances compresses the actual distance (of first pic); hence, object ALONG the street look closer together (flattened, compressed).
+            Zooming in from afar compresses the [actual] distance between camera and intended image plane; Hence, objects along the street look closer together (flattened, compressed).
           </p>
         </div>
-        <div>
-          <img src="photo3.jpg" alt="Part2">
-          <img src="photo4.jpg" alt="Part2" style="margin-top:1rem;">
+        <div class="image-pair">
+          <img src="./media/IMG_5218.jpg" alt="Part2 - Zoomed in (compressed)">
+          <img src="./media/IMG_5220.jpg" alt="Part2 - Wider / closer (less compressed)">
         </div>
       </div>
     </section>
+  
 
-    <!-- Part 3 -->
     <section>
-      <h2>Part 2: The Dolly Zoom</h2>
+      <h2>Part 3: The Dolly Zoom</h2>
       <div class="content">
         <div class="text-block">
-          <p>
-            Zooming in from far distances compresses the actual distance (of first pic); hence, object ALONG the street look closer together (flattened, compressed).
-          </p>
+          <p>4-frame dolly-zoom loop.</p>
         </div>
-        <div>
-          <img src="photo3.jpg" alt="Dolly Zoom">
+        <div class="dolly" aria-label="Dolly zoom 4-frame loop">
+          <img src="./media/IMG_5210.jpg" alt="Frame 1">
+          <img src="./media/IMG_5211.jpg" alt="Frame 2">
+          <img src="./media/IMG_5212.jpg" alt="Frame 3">
+          <img src="./media/IMG_5213.jpg" alt="Frame 4">
         </div>
       </div>
     </section>
+    
+    
+
   </main>
 </body>
 </html>
