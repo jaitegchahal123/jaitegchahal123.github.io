@@ -60,7 +60,7 @@
       <h2>Advanced Image-Pyramid Approach</h2>
       <p>For larger (.tif) files, an exhaustive search becomes too expensive as the range of pixels 
         (both x,y) is too large. Instead, we use an image pyramid, which at each step moves to a coarser
-        image, by reducing the resolution by half and decreasing the size (both by a factor of 2). For this 
+        image, by reducing the resolution by half and decreasing the size (both by a factor of 2), while the min_size (at the coarsest level) is always >= 400px. For this 
         project, I build an image pyramid for both the reference image (base) and the image we're aligning 
         [to the reference image], and essentially minimize L2 for the coarsest image so we an scale the displacement
         vector and research (along a fixed, smaller range) to fine-tune the displacement vector. We also need to then 
