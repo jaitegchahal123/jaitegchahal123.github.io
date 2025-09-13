@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Project 1 — Colorizing the Prokudin-Gorskii Collection</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; margin:0; background:#f9fafc; color:#333; line-height:1.6; }
+    header { text-align:center; padding:2.5rem 1rem; background:#111; color:#fff; }
+    header h1 { margin:0; font-size:2rem; }
+    header p { margin:.5rem 0 0; font-size:1.2rem; opacity:.85; font-family:"Times New Roman", Times, serif; }
+    main { max-width:1000px; margin:2rem auto; padding:0 1rem; }
+    h2 { font-size:1rem; color:#2575fc; margin:2rem 0 1rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem; }
+    figure { margin:0; background:#fff; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,.08); overflow:hidden; }
+    figure img { width:100%; display:block; }
+    figcaption { padding:0.75rem 11.5rem; font-size:.9rem; color:#555; }
+    table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.08); border-radius:8px; overflow:hidden; }
+    th, td { padding:.6rem .8rem; border-bottom:1px solid #eee; text-align:left; font-size:.95rem; }
+    th { background:#f3f6fb; color:#222; }
+    .topnav { max-width:1000px; margin:1rem auto 0; padding:0 1rem; }
+    .topnav a { color:#2575fc; text-decoration:none; }
+    footer { text-align:center; padding:2rem 1rem; font-size:.9rem; color:#666; }
+  </style>
+</head>
+
+
+
+<body>
+  <header>
+    <h1>Project 1</h1>
+    <p>Colorizing the Prokudin-Gorskii Photo Collection</p>
+  </header>
+
+  <div class="topnav"><a href="../index.html">← Back to Home</a></div>
+
+  <main>
+    <section>
+      <h2>Overview</h2>
+      <p>
+        In the early twentieth century, Sergei Mikhailovich Prokudin-Gorskii predicted that color photogrophy
+         would be the wave of the future, however, couldn't yet take photos in color. Instead, 
+         he photographed everything in 3 exposures: red, green, and a blue filter. The intention 
+         is to use these colored filters to project the 3 images together and stack them to a single, colored, output image. 
+      </p>
+    </section>
+
+    <section>
+      <h2>Naive Approach</h2>
+      <p>Once the image is cropped and split into the respective 3 channels (R,G,B), the hardest part 
+        is the alignment of each image onto another. With the naive approach, a simple x,y translation 
+        model is used to determine the displacement vector (x,y). To find the vector, I exhaustively searched 
+        over a [-15, 15] window for each x,y, choosing the vector with the lowest total image difference 
+        (using L2 metric). I also noticed difference between when I cropped it at least 8-10% and when I 
+        didn't. Using a 10% reduction aligns the image a lot better, so I tested and implemented a 8% crop
+         on all sides of the image, for both the naive and pyramid approach.
+      </p>
+    </section>
+  
+    <section>
+      <h2>Advanced Image-Pyramid Approach</h2>
+      <p>For larger (.tif) files, an exhaustive search becomes too expensive as the range of pixels 
+        (both x,y) is too large. Instead, we use an image pyramid, which at each step moves to a coarser
+        image, by reducing the resolution by half and decreasing the size (both by a factor of 2). For this 
+        project, I build an image pyramid for both the reference image (base) and the image we're aligning 
+        [to the reference image], and essentially minimize L2 for the coarsest image so we an scale the displacement
+        vector and research (along a fixed, smaller range) to fine-tune the displacement vector. We also need to then 
+        properly stack/compose the channel offset we found from alignment (vector) and then stack (using dstack).
+        This approach worked for every image except Emir.tif which uses different brightness levels for the 3 plates.
+        However, instead of implementing edge detection (initial solution), I realized that since Green (on average)
+        has less of a difference to R, B channels than R,B have to each other, that the intensities are more
+        correlated, and hence, L2 would work more accurately (given the different brightnesses). 
+      </p>
+    </section>
+
+
+    <section>
+      <h2>Problems I Faced</h2>
+      <p>One particularly annoying problem I ran into is since stacking the 3 channels, requires integer translations, we need to take care of boarder/spacing artifacts and partial overlaps 
+        messing with the L2 metric (we can't use np.roll wraparound or full images because we only want TRUE overlap so that L2 works as intended). Hence, for a potential shift, we slice the
+        INTERSECTION ONLY (true overlap), so that shapes match, pre-process, and then evaluate.
+      </p>
+    </section>
+
+    <section>
+      <h2>Bells and Whistles: Automatic Cropping</h2>
+      <div class="grid">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website_files/no-crop-emir.png" alt="Emir misaligned">
+          <figcaption> Before: No Crop</figcaption>
+        </figure>
+        <figure>
+          <img src="./website_files/emir.png" alt="Emir aligned">
+          <figcaption> After: 8% Crop</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>Emir BEFORE / AFTER aligning to G channel</h2>
+      <div class="grid">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website_files/emir-blurry.png" alt="Emir misaligned">
+
+        </figure>
+        <figure>
+          <img src="./website_files/emir.png" alt="Emir aligned">
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>Results</h2>
+      <div class="grid">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website_files/cathedral.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/church.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/monastery.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/tobolsk.png" alt="ligned">
+        </figure>
+        <figure>
+          <img src="./website_files/emir.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/harvesters.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/icon.png" alt="ligned">
+        </figure>
+        <figure>
+          <img src="./website_files/italil.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/lastochikino.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/lugano.png" alt="ligned">
+        </figure>
+        <figure>
+          <img src="./website_files/melons.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/self.png" alt="aligned">
+        </figure>
+        <figure>
+          <img src="./website_files/siren.png" alt="ligned">
+        </figure>
+        <figure>
+          <img src="./website_files/three.png" alt="ligned">
+        </figure>
+
+      </div>
+    </section>
+
+    <section>
+      <h2>Aligned Images From LOC Library</h2>
+      <div class="grid">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website_files/random.png" alt="Emir misaligned">
+
+        </figure>
+        <figure>
+          <img src="./website_files/random2.png" alt="Emir aligned">
+        </figure>
+      </div>
+    </section>
+  </main>
+
+  <footer></footer>
+</body>
+</html>
