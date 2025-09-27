@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Prism.js for clean highlighting -->
+<!-- Prism.js Light Theme -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<style>
+    mjx-container {
+      font-size: 1rem;         /* match normal text size */
+      background: transparent; /* no box behind math */
+      color: #222;             /* same as your text */
+    }
+    </style>
+  <meta charset="UTF-8" />
+  <title>Project 1 — Colorizing the Prokudin-Gorskii Collection</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; margin:0; background:#f9fafc; color:#333; line-height:1.6; }
+    header { text-align:center; padding:2.5rem 1rem; background:#111; color:#fff; }
+    header h1 { margin:0; font-size:2rem; }
+    header p { margin:.5rem 0 0; font-size:1.2rem; opacity:.85; font-family:"Times New Roman", Times, serif; }
+    main { max-width:1000px; margin:2rem auto; padding:0 1rem; }
+    h2 { font-size:1rem; color:#2575fc; margin:2rem 0 1rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1rem; }
+    figure {
+  margin: 1rem 0;       /* some spacing around */
+  background: none;     /* no white card */
+  border-radius: 0;     /* no rounded corners */
+  box-shadow: none;     /* no drop shadow */
+  text-align: center;   /* center image + caption */
+}
+
+figure img {
+  max-width: 400px;     /* or whatever size you want */
+  width: 100%;
+  height: auto;
+}
+
+    figcaption {
+        padding: 0.5rem 0;        /* small vertical padding */
+        text-align: center;       /* center text */
+        color: #555;
+    }
+    table { width:100%; border-collapse:collapse; background:#fff; box-shadow:0 4px 12px rgba(0,0,0,.08); border-radius:8px; overflow:hidden; }
+    th, td { padding:.6rem .8rem; border-bottom:1px solid #eee; text-align:left; font-size:.95rem; }
+    th { background:#f3f6fb; color:#222; }
+    .topnav { max-width:1000px; margin:1rem auto 0; padding:0 1rem; }
+    .topnav a { color:#2575fc; text-decoration:none; }
+    .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: center;   /* centers the grid as a whole */
+    gap: 1rem;
+    }
+    .grid-2 figure {
+    display: flex;
+    flex-direction: column;   /* stack image and caption */
+    align-items: center;      /* center them horizontally */
+    margin: 0;                /* remove default spacing */
+    }
+    .grid-2 figure img {
+    max-width: 300px;
+    height: auto;
+    display: block;
+    }
+    .grid-2 figure.wide img {
+  max-width: 600px;   /* larger just for the composite */
+}
+
+
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    justify-content: center;   /* centers the grid as a whole */
+    gap: 0rem;
+    }
+    .grid-3 figure {
+    display: flex;
+    flex-direction: column;   /* stack image and caption */
+    align-items: center;      /* center them horizontally */
+    margin: 0;                /* remove default spacing */
+    }
+    .grid-3 figure img {
+    max-width: 300px;
+    height: auto;
+    display: block;
+    }
+    .grid-3 figure.wide img {
+  max-width: 600px;   /* larger just for the composite */
+}
+
+    pre[class*="language-"],
+code[class*="language-"] {
+  background: #f9fafc !important;  /* match site background */
+  font-size: 0.7rem;               /* smaller font */
+  color: #222;                     /* clean dark text */
+  text-shadow: none !important;
+}
+
+pre {
+  border: 1px solid #e5e7eb;       /* subtle border */
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05); /* soft shadow */
+  overflow-x: auto;
+}
+
+
+figure img.taj-large {
+  max-width: 700px;   /* or 800px if you want them bigger */
+  width: 100%;
+  height: auto;
+}
+
+
+
+    footer { text-align:center; padding:2rem 1rem; font-size:.9rem; color:#666; }
+  </style>
+</head>
+
+
+
+<body>
+  <header>
+    <h1>Project 2</h1>
+    <p>Fun with Filters and Frequencies!</p>
+  </header>
+
+  <div class="topnav"><a href="../index.html">← Back to Home</a></div>
+
+  <main>
+    <section>
+      <h2>Part 1.1: Convolutions from Scratch</h2>
+      <p>
+        In this section, I implemented two 2D convolution functions, one with 4 for loops, and an optimized apporach with just 2 for loops. Both versions use zero-padding to assert exact dimensionality as the input. 
+        After, I applied both functions to a greyscale image (of myself), with both a 9x9 box filter and Dx, Dy finite difference operators.
+      </p>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/original_image.jpg" alt="Original Image">
+          <figcaption>Original Image</figcaption>
+        </figure>
+        <figure>
+          <img src="./website/box9.jpg" alt="box9">
+          <figcaption>9x9 Box Filter</figcaption>
+        </figure>
+        <figure>
+            <img src="./website/dx-operator.jpg" alt="Dx Operator">
+            <figcaption>Dx Finite Difference Operator</figcaption>
+        </figure>
+        <figure>
+            <img src="./website/dy-operator.jpg" alt="Dy Operator">
+            <figcaption>Dy Finite Difference Operator</figcaption>
+        </figure>
+      </div>
+      <h2>Code Snippets</h2>
+      <pre><code class="language-python">
+        def conv2d_four_loops(image, kernal):
+            height, width = image.shape
+            kHeight, kWidth = kernal.shape
+            flippedKernal = np.flip(np.flip(kernal, axis = 0), axis = 1)
+        
+            padded = np.pad(image, ((kHeight//2, kHeight // 2), (kWidth // 2, kWidth // 2)), mode='constant', constant_values=0)
+            output = np.zeros((height, width))
+        
+            for i in range(height):
+                for j in range(width):
+                    weighted_sum = 0.0
+                    for k in range(kHeight):
+                        for l in range(kWidth):
+                            weighted_sum += padded[i + k, j + l] * flippedKernal[k, l]
+                    output[i, j] = weighted_sum
+            return output
+        
+        def conv2d_two_loops(image, kernal):
+            height, width = image.shape
+            kHeight, kWidth = kernal.shape
+        
+            flippedKernal = np.flip(kernal, axis = 0)
+            flippedKernal = np.flip(flippedKernal, axis = 1)
+        
+            padded = np.pad(image, ((kHeight//2, kHeight // 2), (kWidth // 2, kWidth // 2)), mode='constant')
+            output = np.zeros((height, width))
+        
+            for i in range(height):
+                for j in range(width):
+                    update_kHeight = i+kHeight
+                    update_kWidth = j+kWidth
+                    patch = padded[i: update_kHeight, j:update_kWidth]
+                    output[i,j] = np.sum(patch * flippedKernal)
+                    
+        return output
+      </code></pre>
+      <p>
+        From above, we can see that output dimensions remain consistent via zero-padding. In terms of run-time, as expected, the four-loop implementation is slower than the two-loop version (non-vectorized). While both are slower than the scipy variation (highly-optimized), results are alike.
+      </p>
+    </section>
+
+    <section>
+      <h2>Part 1.2: Finite Difference Operator</h2>
+      <p>
+        I estimated image derivitives by convolving the cameraman photo with finite-difference filters \(D_x\) and \(D_y\), which capture horizontal and vertical changes respectively. I then formed the gradient magnitude:
+    </p>
+  
+    <p style="text-align:center;">
+      \[
+        \nabla I = \sqrt{D_x^2 + D_y^2}
+      \]
+    </p>
+
+        Which shows regions where intensity varies most (edges). I then converted this into a binary edge map by binarizing the gradient magnitude image (via experimenting with the threshold).
+      </p>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/1.2_original.jpg" alt="Original Image">
+          <figcaption>Original Image</figcaption>
+        </figure>
+        <figure class="wide">
+            <img src="./website/1.2_full.jpg" alt="Full">
+          </figure>
+    </section>
+  
+    <section>
+      <h2>Part 1.3: Derivative of Gaussian (DoG) Filter</h2>
+      <p>
+        Since the finite difference operator resulted in some noisy results, we first smooth the image via a Gaussian filter. This reduces any noise before we actually implement/call the edge detection. Then, convolve the image with Dx, Dy operators to find partial derivitives. To verify, I convolved with a single convolution, and apply to images, and I find I get the same results.
+      </p>
+      <figure>
+        <img src="./website/1.3_dx_and_dy.jpg" alt="Dx, Dy Gaussian" style="max-width:600px; display:block; margin:0 auto;">
+      </figure>
+    
+      <figure>
+        <img src="./website/1.3full.jpg" alt="Dy Gaussian" style="max-width:800px; display:block; margin:0 auto;">
+      </figure>
+      <p>
+        Looking at the binary edge map using DoG filter compared to no filter (1.2), we can see that binary edge map using the DoG filter is much cleaner. The filter reduces noise while still perserving the critical edges of the image. However, reduction in noise comes with loss of smaller details in the image. We can also see that binary edge map for Gaussian + Dx/Dy vs DoG filters are identical.
+    </p>
+    </section>
+
+
+    <section>
+      <h2>Part 2.1: Image "Sharpening"</h2>
+      <p>
+        Here, we implement the unsharp mask filter in order to sharpen images. Specifically, we subtract a blurred version (of img) from the original. The reasoning stems from isolating high-frequency details. Afterwards, we add it back to the original, scaled by alpha (for enhancement). 
+        Moreover, after sharpening the Taj Mahal, blurring it, and then sharpening it again, the image looks bad. This is because the way our algorithm runs, it increases the high frequencies which doesn't make up for lost information (from blurring).
+      </p>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/taj_mahal180.jpg" alt="Original Image">
+          <figcaption>Taj Mahal</figcaption>
+        </figure>
+        <figure>
+          <img src="./website/taj_mahal_blurred.jpg" alt="box9">
+          <figcaption>Taj Mahal Blurred</figcaption>
+        </figure>
+    </div>
+    <figure>
+        <img src="./website/taj3.png" alt="Taj alpha 3" class="taj-large">
+        <figcaption>Taj Mahal (alpha=3)</figcaption>
+      </figure>
+      <figure>
+        <img src="./website/taj5.png" alt="Taj alpha 5" class="taj-large">
+        <figcaption>Taj Mahal (alpha=5)</figcaption>
+      </figure>
+      <figure>
+        <img src="./website/taj7.png" alt="Taj alpha 7" class="taj-large">
+        <figcaption>Taj Mahal (alpha=7)</figcaption>
+      </figure>
+      <figure>
+        <img src="./website/figure1.png" alt="Taj alpha 7" class="taj-large">
+        <figcaption>Bridge</figcaption>
+      </figure>
+      <figure>
+        <img src="./website/figure2.png" alt="Taj alpha 7" class="taj-large">
+        <figcaption>Camera)</figcaption>
+      </figure>
+      <figure>
+        <img src="./website/figure3.png" alt="Taj alpha 7" class="taj-large">
+        <figcaption>Waterfall</figcaption>
+      </figure>
+
+    </section>
+
+    <section>
+      <h2>Part 2.2: Hybrid Images</h2>
+      <p>
+        To create hybrid images, we combine the low-frequency components of any one image to the high-frequency components of a second. This stacked image appears differently from the distance you view it at.
+      </p>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/DerekPicture.jpg" alt="Original Image">
+          <figcaption>Derek</figcaption>
+        </figure>
+        <figure>
+          <img src="./website/nutmeg.jpg" alt="box9">
+          <figcaption>Nutmeg</figcaption>
+        </figure>
+    </div>
+    <figure>
+        <img src="./website/comba.png" alt="Low-Pass Derek + High-Pass Nutmeg = Hybrid" class="taj-large">
+        <figcaption>Low-Pass Derek + High-Pass Nutmeg = Hybrid</figcaption>
+      </figure>
+      <figure>
+        <img src="./website/fft1.png" alt="fft" class="taj-large">
+      </figure>
+      <figure>
+        <img src="./website/fft2.png" alt="fft" class="taj-large">
+      </figure>
+      <h2>Additional Hybrid Images</h2>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/jefferson.jpg" alt="Original Image">
+          <figcaption>Thomas Jefferson</figcaption>
+        </figure>
+        <figure>
+          <img src="./website/madison.jpg" alt="box9">
+          <figcaption>James Madison</figcaption>
+        </figure>
+      </div>
+      <figure>
+        <img src="./website/full_add.png" alt="fft" class="taj-large">
+        <figcaption>Low Pass James Madison + High Pass Thomas Jefferson = Hybrid</figcaption>
+      </figure>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/pp1.jpg" alt="Original Image">
+          <figcaption>Bald Guy Grin</figcaption>
+        </figure>
+        <figure>
+          <img src="./website/pp2.jpg" alt="box9">
+          <figcaption>Bald Guy Scared</figcaption>
+        </figure>
+      </div>
+      <figure>
+        <img src="./website/ppfinal.png" alt="fft" class="taj-large">
+        <figcaption>Hybrid Bald Guy Expression</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>Part 2.3: Gaussian and Laplacian Stacks</h2>
+      <p>
+       Here, I used multiresolution blending using Gaussian and Laplacian stacks. This way, I was able to seamlessly blend two images by their decomposition (of frequencies). First, create the Gaussian/Laplacian stacks of each image, then create a mask and it's gaussian stack, and finally, combine the Laplacian stacks of both images (via mask) and reconstruct the final blended image.
+      </p>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./media/apple.jpeg" alt="Original Image">
+          <figcaption>Apple</figcaption>
+        </figure>
+        <figure>
+          <img src="./media/orange.jpeg" alt="box9">
+          <figcaption>Orange</figcaption>
+        </figure>
+      </div>
+      <h2>Apple: Gaussian & Laplacian Stacks</h2>
+      <div class="grid-3">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/imageGaussian Stack (Apple).png" alt="Original Image">
+        </figure>
+        <figure>
+          <img src="./website/imageLaplacian Stack (Apple).png" alt="box9">
+        </figure>
+      </div>
+      <h2>Orange: Gaussian & Laplacian Stacks</h2>
+      <div class="grid-3">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/imageGaussian Stack (Orange).png" alt="Original Image">
+        </figure>
+        <figure>
+          <img src="./website/imageLaplacian Stack (Orange).png" alt="box9">
+        </figure>
+      </div>
+      <h2>Blending Process</h2>
+      <figure>
+        <img src="./website/First-time-orange.png" alt="Taj alpha 5" class="taj-large">
+        <figcaption>Blending Process</figcaption>
+      </figure>
+
+    </section>
+
+
+    <section>
+        <h2>Part 2.4: Multiresolution Blending</h2>
+        <p>
+          Full Process on example Images.
+        </p>
+        <div class="grid-2">
+          <!-- Replace these src paths with your saved outputs in ./results/ -->
+          <figure>
+            <img src="./website/try1.jpeg" alt="Original Image">
+            <figcaption>Sunset A</figcaption>
+          </figure>
+          <figure>
+            <img src="./website/try2.jpeg" alt="box9">
+            <figcaption>Sunset B</figcaption>
+          </figure>
+      </div>
+      <figure>
+        <img src="./website/blendset.png" alt="box9">
+        <figcaption>Final Blend</figcaption>
+      </figure>
+      <p>
+        Irregular Mask:
+      </p>
+      <div class="grid-2">
+        <!-- Replace these src paths with your saved outputs in ./results/ -->
+        <figure>
+          <img src="./website/pom.jpeg" alt="Original Image">
+          <figcaption>Pomegranate</figcaption>
+        </figure>
+        <figure>
+          <img src="./website/watermelon.jpeg" alt="box9">
+          <figcaption>watermelon</figcaption>
+        </figure>
+    </div>
+    <figure>
+      <img src="./website/breh.png" alt="box9">
+      <figcaption>Final Blend</figcaption>
+    </figure>
+    <h2>What I Learned</h2>
+    <p>
+      The most important thing I learned was via Fourier analysis where I learned that low-pass filtering preserves global structure, high-pass filtering keeps edges, which reinforces the frequency perspective we talked about in class. Moreover, I learned from this project was about how just by changing frequencies of images, we're able to affect our perception entirely. Blurring, sharpening, stacking, etc, we can use Gaussian/Laplacian Stacks to bring insane ideas to life.
+    </p>
+  <footer></footer>
+</body>
+</html>
