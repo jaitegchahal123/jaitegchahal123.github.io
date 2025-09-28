@@ -161,7 +161,8 @@ figure img.taj-large {
         def conv2d_four_loops(image, kernal):
             height, width = image.shape
             kHeight, kWidth = kernal.shape
-            flippedKernal = np.flip(np.flip(kernal, axis = 0), axis = 1)
+            flippedKernal = np.flip(kernal, axis = 0)
+            flippedKernal = np.flip(flippedKernal, axis = 1)
         
             padded = np.pad(image, ((kHeight//2, kHeight // 2), (kWidth // 2, kWidth // 2)), mode='constant', constant_values=0)
             output = np.zeros((height, width))
