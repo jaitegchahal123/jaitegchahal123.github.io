@@ -1,0 +1,21 @@
+# macOS junk
+.DS_Store
+
+# Jupyter checkpoints
+**/.ipynb_checkpoints/
+
+# Big data files (arrays, datasets)
+proj4/*.npz
+
+# Raw images / capture sequences / visualizations (too big for git)
+proj4/calib_images/
+proj4/lafufu_frames/
+proj4/lafufu_val_rows/
+proj4/lafufu_val_rows_opt/
+proj4/object_images/
+proj4/retainer_again/
+proj4/retainer_frames/
+proj4/retainer_val_rows/
+proj4/frustum_visualizations/
+proj4/ray_sample_viz/
+proj4/custom_val_rows_opt/
