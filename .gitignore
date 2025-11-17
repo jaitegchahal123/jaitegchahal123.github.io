@@ -29,3 +29,19 @@ proj4/*.npz
 # test / scratch files
 proj4/test*
 proj4/*copy*.ipynb
+
+# --- Allow specific images needed for the report ---
+!proj4/calib_images/
+!proj4/calib_images/IMG_6392.jpg
+!proj4/calib_images/IMG_6405.jpg
+
+!proj4/retainer_again/
+!proj4/retainer_again/IMG_6572.jpg
+!proj4/retainer_again/IMG_6525.jpg
+!proj4/retainer_again/IMG_6583.jpg
+
+!proj4/part2_outputs/val_rows/
+!proj4/part2_outputs/val_rows/iter_50.png
+!proj4/part2_outputs/val_rows/iter_100.png
+!proj4/part2_outputs/val_rows/iter_500.png
+!proj4/part2_outputs/val_rows/iter_1200.png
