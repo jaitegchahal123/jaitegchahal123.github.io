@@ -1,21 +1,31 @@
-# macOS junk
+# macOS
 .DS_Store
 
-# Jupyter checkpoints
+# Jupyter
 **/.ipynb_checkpoints/
 
-# Big data files (arrays, datasets)
-proj4/*.npz
-
-# Raw images / capture sequences / visualizations (too big for git)
+# Do NOT track raw images/data
 proj4/calib_images/
-proj4/lafufu_frames/
-proj4/lafufu_val_rows/
-proj4/lafufu_val_rows_opt/
+proj4/retainer_aruco/
 proj4/object_images/
 proj4/retainer_again/
-proj4/retainer_frames/
-proj4/retainer_val_rows/
-proj4/frustum_visualizations/
-proj4/ray_sample_viz/
-proj4/custom_val_rows_opt/
+proj4/lafufu_frames/
+proj4/lafufu_val_rows/
+proj4/part1_outputs/raw/
+proj4/part2_outputs/lego_360_frames/
+proj4/part2_outputs/val_rows/
+proj4/part2_outputs/val_snapshots/
+proj4/part3/frames/
+proj4/part3/frames_train/
+proj4/part3/val_rows/
+proj4/part3/val_snapshots/
+
+# videos
+proj4/**/*.mp4
+
+# large arrays/datasets
+proj4/*.npz
+
+# test / scratch files
+proj4/test*
+proj4/*copy*.ipynb
