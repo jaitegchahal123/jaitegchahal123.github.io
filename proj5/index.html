@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Prism.js for clean highlighting (kept for consistency with previous projects) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <meta charset="UTF-8" />
+  <title>Project 5 — Diffusion Models & Flow Matching</title>
+  <style>
+    /* --- Base --- */
+    :root{--ink:#111;--fg:#333;--muted:#666;--link:#2575fc;--bg:#f9fafc;--card:#fff;--wash:#f3f6fb;}
+    *{box-sizing:border-box}
+    body{font-family:"Segoe UI", Arial, sans-serif;margin:0;background:var(--bg);color:var(--fg);line-height:1.6}
+    a{color:var(--link);text-decoration:none}
+    header{padding:2.75rem 1rem;text-align:center;background:var(--ink);color:#fff}
+    header h1{margin:0;font-size:2rem}
+    header p{margin:.5rem 0 0;font-size:1.05rem;opacity:.9;font-family:"Times New Roman", Times, serif}
+    .topnav{max-width:1100px;margin:1rem auto 0;padding:0 1rem}
+    main{max-width:1100px;margin:2rem auto;padding:0 1rem}
+    h2{font-size:1.1rem;color:var(--link);margin:2rem 0 1rem}
+    h3{font-size:1rem;color:#222;margin:1.25rem 0 .5rem}
+    p code, li code{background:#eef2ff;border:1px solid #e5e7eb;border-radius:4px;padding:.1rem .3rem}
+    .callout{border:1px solid #e5e7eb;background:#fff;border-left:4px solid var(--link);padding:1rem;border-radius:8px}
+    .muted{color:var(--muted)}
+
+    /* --- Media Blocks --- */
+    figure{margin:1rem 0;text-align:center}
+    figcaption{padding:.35rem 0;color:#555}
+    img.resp{max-width:100%;height:auto;border-radius:8px}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+    .grid-tight{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem}
+    .side-by{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+
+    /* --- Code look --- */
+    pre[class*="language-"], code[class*="language-"]{background:var(--bg)!important;font-size:.85rem;color:#222;text-shadow:none!important}
+    pre{border:1px solid #e5e7eb;border-radius:8px;padding:1rem;box-shadow:0 2px 6px rgba(0,0,0,.05);overflow:auto}
+
+    /* --- Tables --- */
+    table{width:100%;border-collapse:collapse;background:var(--card);box-shadow:0 4px 12px rgba(0,0,0,.06);border-radius:8px;overflow:hidden}
+    th,td{padding:.6rem .8rem;border-bottom:1px solid #eee;text-align:left;font-size:.95rem}
+    th{background:var(--wash);color:#222}
+
+    /* --- Tag & Badge --- */
+    .tag{display:inline-block;background:#eef2ff;border:1px solid #e5e7eb;color:#334155;padding:.2rem .5rem;border-radius:999px;font-size:.75rem}
+
+    /* --- Footer --- */
+    footer{text-align:center;padding:2rem 1rem;font-size:.9rem;color:var(--muted)}
+
+    /* MathJax size parity */
+    mjx-container{font-size:1rem;background:transparent;color:#222}
+
+    /* --- Two-image pair layout --- */
+    .pair {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin: 0.5rem auto;
+      max-width: 1000px;
+    }
+
+    .pair figure {
+      margin: 0;
+      flex: 0 1 clamp(150px, 30%, 300px);
+    }
+
+    .pair img.resp {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    /* --- 3 on top, 2 on bottom grid --- */
+    .mixed-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 0.75rem;
+      justify-items: center;
+      align-items: start;
+      margin: 1rem auto;
+      max-width: 1100px;
+    }
+
+    .mixed-grid figure { margin: 0; }
+    .mixed-grid img.resp { width: 100%; max-width: 320px; height: auto; border-radius: 8px; }
+
+    .mixed-grid figure:nth-child(1) { grid-column: 1 / span 2; }
+    .mixed-grid figure:nth-child(2) { grid-column: 3 / span 2; }
+    .mixed-grid figure:nth-child(3) { grid-column: 5 / span 2; }
+    .mixed-grid figure:nth-child(4) { grid-column: 2 / span 2; }
+    .mixed-grid figure:nth-child(5) { grid-column: 4 / span 2; }
+
+    @media (max-width: 700px) {
+      .mixed-grid { grid-template-columns: repeat(2, 1fr); }
+      .mixed-grid figure { grid-column: auto / span 1; }
+    }
+
+    /* --- Larger image pair layout --- */
+    .pair-large {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin: 1.5rem auto;
+      max-width: 1200px;
+    }
+
+    .pair-large figure {
+      margin: 0;
+      flex: 0 1 clamp(300px, 48%, 550px);
+    }
+
+    .pair-large img.resp {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* --- Mosaic image layout (smaller, centered) --- */
+    .mosaic {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 1.5rem auto;
+      max-width: 700px;
+    }
+
+    .mosaic figure {
+      margin: 0;
+    }
+
+    .mosaic img.resp {
+      width: 100%;
+      max-width: 700px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    /* --- Three side-by-side images --- */
+    .three-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      justify-items: center;
+      align-items: start;
+      margin: 1rem auto;
+      max-width: 1100px;
+    }
+
+    .three-grid figure {
+      margin: 0;
+    }
+
+    .three-grid img.resp {
+      width: 100%;
+      max-width: 360px;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    /* --- Equation card --- */
+    .eq-card{
+      background:var(--card);
+      border:1px solid #e5e7eb;
+      border-left:4px solid var(--link);
+      border-radius:10px;
+      padding:1rem 1.1rem;
+      box-shadow:0 3px 10px rgba(0,0,0,.05);
+      margin:1rem 0;
+    }
+    .eq-title{margin:.25rem 0 .5rem;color:#111;font-weight:600}
+    .eq-sub{margin:.25rem 0;color:var(--muted);font-size:.95rem}
+
+    .eq-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:1rem;
+      align-items:start;
+    }
+    @media (max-width: 820px){ .eq-grid{ grid-template-columns:1fr; } }
+
+    .eq-note{
+      background:#f8fafc;
+      border:1px dashed #e5e7eb;
+      border-radius:8px;
+      padding:.75rem .9rem;
+      color:#374151;
+      font-size:.95rem;
+    }
+
+    /* --- Single centered image --- */
+    .single-image {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 1rem auto;
+      max-width: 1000px;
+    }
+
+    .single-image figure {
+      margin: 0;
+    }
+
+    .single-image img.resp {
+      width: 100%;
+      max-width: 900px;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .mosaic-pair {
+      width: clamp(320px, 92vw, 1100px);
+      margin: 2rem auto;
+      display: grid;
+      grid-template-rows: auto auto;
+      gap: 1.25rem;
+    }
+
+    .mosaic-card {
+      margin: 0;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 6px 22px rgba(0,0,0,.12);
+      padding: 0.75rem;
+    }
+
+    .mosaic-cap {
+      margin: 0.5rem 0 0;
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.3;
+      color: #444;
+    }
+
+    .mosaic-frame {
+      aspect-ratio: 16 / 9;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    .mosaic-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    @media (max-width: 480px) {
+      .mosaic-pair { gap: 0.9rem; }
+      .mosaic-cap { font-size: 0.95rem; }
+    }
+
+    hr.section-divider {
+      border: 0;
+      height: 3px;
+      background: #c9c9c9;
+      margin: 2.5rem 0;
+      border-radius: 2px;
+    }
+
+    hr.section-divider.full-bleed {
+      width: 100vw;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    hr.section-divider.soft {
+      height: 2px;
+      background: linear-gradient(to right, transparent, #bdbdbd, transparent);
+    }
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Project 5 — Diffusion Models & Flow Matching</h1>
+    <p>DeepFloyd IF sampling, editing, and MNIST flow matching with UNets and classifier-free guidance.</p>
+  </header>
+
+  <div class="topnav">
+    <a href="../index.html">← Back to Home</a>
+  </div>
+
+  <main>
+    <!-- ================= PART A: DIFFUSION ================= -->
+    <section id="part-a">
+      <h2>A.0 — Overview, Prompts, and Seed</h2>
+      <p>
+        In Part A, I use the DeepFloyd IF Stage I diffusion model to explore forward diffusion,
+        denoising, iterative sampling, classifier-free guidance (CFG), SDEdit-style
+        image-to-image translation, inpainting, visual anagrams, and hybrid images. I generated
+        prompt embeddings via HuggingFace and used a fixed random seed
+        <code>seed = 100</code> for all sampling-related experiments.
+      </p>
+      <p>
+        Example prompts I worked with:
+      </p>
+      <ul>
+        <li>"a cartoon avocado lifting weights, bold outlines, flat colors"</li>
+        <li>"a charcoal sketch of a small house under a starry sky"</li>
+        <li>"a digital painting of a rocket ship launching over the UC Berkeley Campanile"</li>
+        <li>"at sunset, cinematic lighting"</li>
+        <li>"a high quality photo"</li>
+        <li>"a bear dancing"</li>
+        <li>"a man wearing a hat"</li>
+        <li>"a lithograph of a waterfall"</li>
+        <li>"a lithograph of a skull"</li>
+        <li>"an oil painting of an old man"</li>
+        <li>"an oil painting of people around a campfire"</li>
+      </ul>
+
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./1a.png" alt="Example text-to-image outputs and description of prompts/seed">
+          <figcaption><code>num_inference_steps</code> = 20.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./1b.png" alt="Example text-to-image outputs and description of prompts/seed">
+          <figcaption><code>num_inference_steps</code> = 80.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="a1">
+      <h2>A.1 — Forward Diffusion and Classical Denoising</h2>
+
+      <h3>A.1.1 — Forward Process on the Campanile</h3>
+      <p>
+        I implemented the forward diffusion process
+        <code>x_t = sqrt(alpha_bar_t)·x_0 + sqrt(1 - alpha_bar_t)·ε</code>
+        using the provided <code>alphas_cumprod</code>. Below, I apply this to a 64×64
+        Campanile image at timesteps 250, 500, and 750.
+      </p>
+      <div class="three-grid">
+        <figure>
+          <img class="resp" src="./1c.png" alt="Campanile at t=250">
+          <figcaption>Campanile at <strong>t = 250</strong></figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./1d.png" alt="Campanile at t=500">
+          <figcaption>Campanile at <strong>t = 500</strong></figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./1e.png" alt="Campanile at t=750">
+          <figcaption>Campanile at <strong>t = 750</strong></figcaption>
+        </figure>
+      </div>
+
+      <h3>A.1.2 — Gaussian Blur Baseline</h3>
+      <p>
+        Using <code>torchvision.transforms.functional.gaussian_blur</code>, I applied
+        Gaussian smoothing (e.g., kernel 5, σ = 2) to the noisy Campanile images
+        as a classical denoising baseline. It removes high-frequency noise but
+        also blurs edges and structure quite heavily.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./1f.png" alt="Noisy and Gaussian-denoised Campanile for different timesteps">
+          <figcaption>Gaussian-blur denoised versions at t = 250, 500, 750.</figcaption>
+        </figure>
+      </div>
+
+      <!-- <h3>A.1.3 — One Step Denoising</h3>
+      <p>
+        Using the pretrained diffusion model, I estimated the noise in the image and removed it to recover the original image. I used "high quality photo" for the text embedding.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./1g.png" alt="Noisy and Gaussian-denoised Campanile for different timesteps">
+          <figcaption>Noisy to Original.</figcaption>
+        </figure>
+      </div>
+    
+    <h3>A.1.4 — Iterative Denoising</h3>
+      <p>
+        Instead of denoising in a single step, we denoise iterively. We use strided timestamps, and compare the outputs.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./1h.png" alt="Noisy and Gaussian-denoised Campanile for different timesteps">
+          <figcaption>We can see, iterative denoising produces the best result and gaussian produces teh worst. Iterative denoising seems to product artifacts that aren't exactly the original image, but it is more sharp than the one-step.</figcaption>
+        </figure>
+      </div>
+    </section> -->
+
+    <section id="a2">
+      <h2>One-Step & Iterative Denoising</h2>
+
+      <h3>One-Step Denoising</h3>
+      <p>
+        I used <code>stage_1.unet</code> to predict the noise <code>ε̂</code> from
+        a noisy image at timestep <code>t</code>, then reconstructed an estimate of
+        the clean image:
+      </p>
+      <p>
+        <code>x0_hat = (x_t - sqrt(1 - alpha_bar_t) * eps_hat) / sqrt(alpha_bar_t)</code>.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./1g.png" alt="Original, noisy, and one-step denoised Campanile">
+          <figcaption>Original, noisy (t = 250, 500, 750), and one-step denoised Campanile images. One-step works better for low noise but degrades at high noise.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Iterative Denoising (Strided Timesteps)</h3>
+      <p>
+        I constructed a strided timestep schedule
+        <code>[990, 960, ..., 0]</code> (stride 30) and implemented DDPM-style
+        iterative denoising using the supplied <code>add_variance</code> function.
+        Starting from a noisy image at <code>i_start = 10</code>, I iteratively
+        denoise to <code>t = 0</code>.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./1h.png" alt="Original, noisy, and one-step denoised Campanile">
+          <figcaption>We can see, iterative denoising produces the best result and gaussian produces the worst. Iterative denoising seems to product artifacts that aren't exactly the original image, but it is more sharp than the one-step</figcaption>
+        </figure>
+      </div>
+      <!-- <div class="pair-large">
+        <figure>
+          <img class="resp" src="./media/a2_iterative_progress.png" alt="Iterative denoising progression every few steps">
+          <figcaption>Campanile during iterative denoising — every few steps from highly noisy to nearly clean.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./media/a2_iterative_vs_onestep_vs_gaussian.png" alt="Iterative vs one-step vs Gaussian">
+          <figcaption>Comparison of iterative denoising, one-step denoising, and Gaussian blur. Iterative diffusion best recovers structure and detail.</figcaption>
+        </figure>
+      </div> -->
+    </section>
+
+    <section id="a3">
+      <h2>Diffusion Model Sampling</h2>
+
+      <h3>Sampling from Pure Noise (No CFG)</h3>
+      <p>
+        I sampled pure Gaussian noise at the highest timestep, then ran the
+        iterative denoising loop with <code>i_start = 0</code> and the
+        prompt embedding for <em>"a high quality photo"</em>. The results
+        are somewhat image-like but noisy and incoherent.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./2a.png" alt="Five unguided samples">
+          <figcaption>Five samples generated from pure noise without CFG, using iterative denoising only.</figcaption>
+        </figure>
+      </div>
+
+      <h3>Classifier-Free Guidance (CFG)</h3>
+      <p>
+        I implemented <code>iterative_denoise_cfg</code>, which runs the UNet
+        twice (conditional and unconditional) and combines noise predictions via
+        <code>eps = eps_uncond + γ·(eps_cond - eps_uncond)</code>. I used
+        guidance scale <code>γ = 7</code>.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./2b.png" alt="Five CFG samples">
+          <figcaption>Five samples of “a high quality photo” with CFG (γ = 7). Images are sharper and more realistic compared to the unguided samples.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="a4">
+      <h2>Image-to-Image Translation, Inpainting, Anagrams, and Hybrids</h2>
+
+      <h3>SDEdit on the Campanile</h3>
+      <p>
+        I applied SDEdit: starting from the real Campanile, add noise corresponding
+        to a given <code>i_start</code>, then run the CFG sampler back to <code>t = 0</code>
+        with prompt "a high quality photo". Lower noise makes subtle edits; higher
+        noise yields larger changes.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./2c.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>Campanile SDEdit edits for <code>i_start ∈ {1, 3, 5, 7, 10, 20}</code>, plus original (right). Edits grow more drastic as starting noise increases.</figcaption>
+        </figure>
+      </div>
+
+      <h3>SDEdit on Other Test & Hand-Drawn / Web Images</h3>
+      <p>
+        I repeated SDEdit on two more real images and on both web and hand-drawn
+        inputs. Starting from sketches, the model “projects” them onto the natural
+        image manifold while preserving rough layout.
+      </p>
+      <div class="pair">
+        <figure>
+          <img class="resp" src="./2d.png" alt="SDEdit on two additional test images">
+          <figcaption>SDEdit on BEACH test image across the same set of noise levels.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./2e.png" alt="SDEdit on two additional test images">
+          <figcaption>SDEdit on CONCERT test image across the same set of noise levels.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./2f.png" alt="SDEdit on hand-drawn and web images">
+          <figcaption>SDEdit applied to a downloaded web image.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./2g.png" alt="SDEdit on hand-drawn and web images">
+          <figcaption>SDEdit applied to a hand-drawn 1.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./2h.png" alt="SDEdit on hand-drawn and web images">
+          <figcaption>SDEdit applied to a hand-drawn 2.</figcaption>
+        </figure>
+      </div>
+
+      <h3>A.4.3 — Inpainting</h3>
+      <p>
+        I implemented an inpainting loop where, at every denoising step, I overwrite
+        unmasked pixels with the appropriately noised original image
+        <code>x_0</code> at the current timestep, and only allow the masked region
+        to be denoised freely.
+      </p>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./3a.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>Campanile</figcaption>
+        </figure>
+      </div>
+
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./3b.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>Beach</figcaption>
+        </figure>
+      </div>
+
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./3c.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>Concert</figcaption>
+        </figure>
+      </div>
+
+
+      <h3>Text-Conditional Image-to-Image Translation</h3>
+      <p>
+        I then used SDEdit but changed the prompt to non-trivial text (e.g.,
+        “a rocket ship over campus”), making the projection respect both the original
+        image structure and the new text semantics.
+      </p>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./4a.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>Campanile edited under a “sunset house” prompt: at higher noise levels, the tower morphs into a rocket-like structure.</figcaption>
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./4b.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>Beach edited under a "sketch of a small house under starry night" prompt.</figcaption>
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./4c.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>Concert edited under "small house under a starry night"</figcaption>
+        </figure>
+      </div>
+
+      <h3>Visual Anagrams</h3>
+      <p>
+        For visual anagrams, I denoise normally with prompt <code>p1</code> on the
+        current image and with prompt <code>p2</code> on the vertically flipped image,
+        flip the second noise estimate back, average them, and perform the reverse step.
+      </p>
+
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./5a.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>p1 = ["an oil painting of an old man"] and p2 = ["an oil painting of people around a campfire"].</figcaption>
+        </figure>
+      </div>
+
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./5b.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>p1 = ["a lithograph of a skull"] and p2 = ["an oil painting of a snowy mountain village"].</figcaption>
+        </figure>
+      </div>
+
+      <h3>Hybrid Images</h3>
+      <p>
+        I implemented <code>make_hybrids</code>, which computes two CFG noise estimates
+        using prompts <code>p1</code> and <code>p2</code>, extracts low frequencies from
+        one and high frequencies from the other using a Gaussian blur
+        (kernel 33, σ = 2), and recombines them:
+      </p>
+      <p>
+        <code>eps = lowpass(eps1) + highpass(eps2)</code>.
+      </p>
+
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./6a.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>p1 = ["an oil painting of a snowy mountain village"] and p2 = ["a lithograph of a skull"].</figcaption>
+        </figure>
+      </div>
+
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./6b.png" alt="SDEdit results on Campanile for various noise levels">
+          <figcaption>p1 = ["a rocket ship"] and p2 = ["a charcoal sketch of a small house under a starry sky"].</figcaption>
+        </figure>
+      </div>
+
+    </section>
+
+    <hr class="section-divider full-bleed soft">
+
+    <!-- ================= PART B: FLOW MATCHING ================= -->
+    <section id="part-b">
+      <h2>B.1 — Single-Step Denoising UNet on MNIST</h2>
+      <p>
+        In Part B, I train my own UNets from scratch on MNIST. I start with a single-step
+        denoiser, then implement time-conditioned and class-conditioned flow matching
+        models. For all parts I use the MNIST training set with standard train/test splits.
+      </p>
+
+      <h3>B.1.1 — Noise Process Visualization</h3>
+      <p>
+        I implemented <code>add_noise(x, sigma)</code> and visualized MNIST digits
+        at <code>σ ∈ {0.0, 0.2, 0.5}</code>. Images are normalized to [-1, 1] internally
+        and mapped back to [0, 1] for visualization.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./7a.png" alt="MNIST digits with different noise levels">
+          <figcaption>MNIST digits from the training loader with σ = 0.0 (clean), 0.2, and 0.5.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./7b.png" alt="MNIST digits with different noise levels">
+          <figcaption>MNIST digits from the training loader with σ = 0.0.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./7c.png" alt="MNIST digits with different noise levels">
+          <figcaption>MNIST digits from the training loader with σ = 0.2.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./7d.png" alt="MNIST digits with different noise levels">
+          <figcaption>MNIST digits from the training loader with σ = 0.5.</figcaption>
+        </figure>
+      </div>
+
+      <h3>B.1.2 — Training the Single-Step Denoiser</h3>
+      <p>
+        I used an unconditional UNet with hidden dimension D = 128. The training objective
+        is an L2 loss between the network output and the clean digit
+        <code>x</code>, given a noisy input <code>x̃</code> constructed on the fly with
+        random σ (here, σ = 0.5).
+      </p>
+      <ul>
+        <li>Batch size: 256</li>
+        <li>Optimizer: Adam, learning rate 1e-4</li>
+        <li>Epochs: 5</li>
+      </ul>
+
+      <div class="pair">
+        <figure>
+          <img class="resp" src="./8a.png" alt="Training loss curve for single-step denoiser">
+          <figcaption>Training loss curve.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./8b.png" alt="Denoised test digits after 1 and 5 epochs">
+          <figcaption>Denoising on test digits.</figcaption>
+        </figure>
+      </div>
+
+      <h3>B.1.3 — Out-of-Distribution Noise Levels</h3>
+      <p>
+        I evaluated the trained denoiser on test digits with different σ values
+        (not seen during training). It performs best around σ = 0.5, with performance
+        degrading for much smaller or larger noise.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./9a.png" alt="OOD noise level denoising grid">
+          <figcaption>Same test digit denoised across several noise levels σ, illustrating generalization and failure modes.</figcaption>
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9b.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9c.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9d.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9e.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9f.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9g.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9h.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./9i.png" alt="OOD noise level denoising grid">
+        </figure>
+      </div>
+
+      <h3>B.1.4 — Denoising Pure Noise</h3>
+      <p>
+        I retrained the UNet to map pure Gaussian noise directly to clean digits, again
+        using an L2 loss. The model learns to output blurry, “average” digits, reflecting
+        the centroid-seeking behavior of MSE.
+      </p>
+      <div class="pair">
+        <figure>
+          <img class="resp" src="./10a.png" alt="Training loss for pure-noise denoiser">
+          <figcaption>Training loss for the pure-noise-to-digit denoiser.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./10b.png" alt="Denoising pure noise samples after 1 and 5 epochs">
+          <figcaption>Outputs when denoising pure noise. Samples collapse toward blurry, average digits.</figcaption>
+        </figure>
+      </div>
+      <p class="muted">
+        Intuitively, minimizing MSE pushes predictions toward the point that minimizes
+        squared distance to all training images (a centroid), which explains the blurred,
+        averaged shapes when starting from unstructured noise.
+      </p>
+    </section>
+
+    <section id="b2">
+      <h2>B.2 — Time-Conditioned Flow Matching</h2>
+
+      <h3>B.2.1 — Time-Conditioned UNet Architecture</h3>
+      <p>
+        I implemented a time-conditioned UNet where a scalar time
+        <code>t ∈ [0,1]</code> is embedded via FCBlocks and injected into the
+        network at the bottleneck and in the first upsampling stage:
+      </p>
+      <ul>
+        <li><code>t1 = fc1_t(t)</code> modulates the unflatten (7×7) feature maps.</li>
+        <li><code>t2 = fc2_t(t)</code> modulates the first upsampling block.</li>
+      </ul>
+      <p>
+        During training, I sample <code>x_1</code> (clean MNIST digit), <code>x_0</code>
+        (pure noise), a random <code>t</code>, and form a convex combination between
+        them. The network is trained to approximate the flow field
+        between noise and data using the provided time flow-matching objective.
+      </p>
+
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./11a.png" alt="Training loss for time-conditioned FM">
+          <figcaption>Training loss curve for the time-conditioned flow matching model.</figcaption>
+        </figure>
+      </div>
+
+      <h3>B.2.2 — Sampling from the Time-Conditioned UNet</h3>
+      <p>
+        I implemented <code>time_fm_sample</code>, which samples from the learned
+        flow by integrating the ODE from t = 0 (noise) to t = 1 (data) using Euler
+        steps and the trained UNet. Below are samples after different numbers of
+        training epochs.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./12b.png" alt="Time-conditioned FM samples over epochs">
+          <figcaption>Sampling from the time-conditioned UNet after 1, 5, and 10 epochs. Digits become more legible as training progresses.</figcaption>
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./12a.png" alt="Time-conditioned FM samples over epochs">
+        </figure>
+      </div>
+    <div class="single-image">
+        <figure>
+          <img class="resp" src="./12c.png" alt="Time-conditioned FM samples over epochs">
+        </figure>
+      </div>
+    </section>
+
+    <section id="b3">
+      <h2>B.3 — Class-Conditioned Flow Matching</h2>
+
+      <h3>B.3.1 — Class-Conditioned UNet</h3>
+      <p>
+        I extended the UNet to accept both a time <code>t</code> and a class
+        one-hot vector <code>c</code>. I added two more FCBlocks for class
+        conditioning and combined them with the time embeddings:
+      </p>
+      <ul>
+        <li><code>unflatten = c1 * unflatten + t1</code></li>
+        <li><code>up1 = c2 * up1 + t2</code></li>
+      </ul>
+      <p>
+        For classifier-free guidance during training, I drop the class conditioning
+        with probability <code>p_uncond = 0.1</code> by replacing <code>c</code>
+        with zero.
+      </p>
+
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./13a.png" alt="Class-conditioned FM training loss">
+          <figcaption>Training loss curve for the class-conditioned flow matching UNet (num_ts = 300, p_uncond = 0.1).</figcaption>
+        </figure>
+      </div>
+
+      <h3>B.3.2 — Class-Conditional Sampling (with CFG)</h3>
+      <p>
+        Using <code>class_fm_sample</code>, I sampled digits conditioned on each
+        class label 0–9 while applying classifier-free guidance with scale
+        <code>guidance_scale = 5.0</code>. I generated multiple instances per digit.
+      </p>
+      <div class="single-image">
+        <figure>
+          <img class="resp" src="./14a.png" alt="Class-conditional digit samples 0-9">
+          <figcaption>Class-conditioned flow matching samples after 10 epochs. Four instances per digit class (0–9). Digits are sharper and more class-separated than with time-only conditioning.</figcaption>
+        </figure>
+      </div>
+
+      <h3>B.3.3 — Removing the Learning Rate Scheduler</h3>
+      <p>
+        The assignment asked whether we can remove the exponential LR scheduler and
+        still maintain performance. Originally, I used:
+      </p>
+      <ul>
+        <li>LR: <code>1e-2</code> with <code>ExponentialLR(gamma &lt; 1)</code></li>
+      </ul>
+      <p>
+        Without the scheduler, I lowered the learning rate and slightly extended the
+        training schedule to keep optimization stable:
+      </p>
+      <ul>
+        <li>LR: <code>3e-3</code>, no scheduler, modestly more epochs</li>
+      </ul>
+
+      <div class="pair">
+        <figure>
+          <img class="resp" src="./15a.png" alt="Loss curve without LR scheduler">
+          <figcaption>Samples with LR scheduler.</figcaption>
+        </figure>
+        <figure>
+          <img class="resp" src="./15b.png" alt="Samples without LR scheduler">
+          <figcaption>Samples without LR scheduler.</figcaption>
+        </figure>
+      </div>
+
+      <p class="muted">
+        In practice, a slightly smaller fixed learning rate and a bit more training
+        time approximate the effect of an exponential scheduler well enough, while keeping the implementation simpler.
+      </p>
+    </section>
+  </main>
+</body>
+</html>
